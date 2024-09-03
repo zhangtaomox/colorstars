@@ -1,65 +1,72 @@
 <template>
-  <div class="starred-repos-container">
-    <div class="header-container">
-      <n-space justify="space-between" class="header-space">
-        <div class="avatar-container">
-          <img :src="avatarUrl" alt="GitHub Avatar" class="avatar" @click="showUsernameInput = true" v-if="!showUsernameInput" />
-          <n-input v-else round placeholder="输入GitHub用户名" v-model:value="username" @keydown.enter="fetchAllStarredRepos" @blur="hideUsernameInput" />
-        </div>
-        <div class="tag-input-container">
-          <n-select
-            v-model:value="selectedTags"
-            multiple
-            filterable
-            placeholder="选择标签进行筛选"
-            :options="tagOptions"
-            @update:value="handleTagChange"
-          />
-          <n-button @click="showModal = true">+</n-button>
-        </div>
-      </n-space>
-      <div class="divider"></div>
-    </div>
-    <n-space vertical class="content-container">
-      <div class="repo-grid">
-        <n-card v-for="repo in filteredRepos" :key="repo.id" class="repo-card">
-          <template #header>
-            <div class="repo-header">
-              <h3 class="repo-title">{{ repo.name }}</h3>
-              <div class="tag-select-container">
-                <n-select v-model:value="repoTags[repo.id]" multiple filterable size="small" placeholder="添加标签" :options="tagOptions" @update:value="(value) => handleRepoTagChange(repo.id, value)" />
-              </div>
+  <div class="page-container">
+    <div class="content-wrapper">
+      <div class="starred-repos-container">
+        <div class="header-container">
+          <n-space justify="space-between" class="header-space">
+            <div class="avatar-container">
+              <img :src="avatarUrl" alt="GitHub Avatar" class="avatar" @click="showUsernameInput = true" v-if="!showUsernameInput" />
+              <n-input v-else round placeholder="输入GitHub用户名" v-model:value="username" @keydown.enter="fetchAllStarredRepos" @blur="hideUsernameInput" />
             </div>
-          </template>
-          <n-space vertical>
-            <a :href="repo.html_url" target="_blank" class="repo-link">{{ repo.full_name }}</a>
-            <p class="repo-description">{{ repo.description }}</p>
-            <n-space>
-              <n-tag v-if="repo.language">{{ repo.language }}</n-tag>
-              <n-tag>
-                <template #icon>
-                  <n-icon color="#e7bd46"><star-filled /></n-icon>
-                </template>
-                {{ repo.stargazers_count }}
-              </n-tag>
-            </n-space>
-            <n-space wrap>
-              <n-tag :type="tag.split('::')[1]" v-for="tag in repoTags[repo.id]" :key="tag" closable @close="removeRepoTag(repo.id, tag)">
-                {{ tag.split('::')[0] }}
-              </n-tag>
-            </n-space>
+            <div class="tag-input-container">
+              <n-select
+                v-model:value="selectedTags"
+                multiple
+                filterable
+                placeholder="选择标签进行筛选"
+                :options="tagOptions"
+                @update:value="handleTagChange"
+              />
+              <n-button @click="showModal = true">+</n-button>
+            </div>
           </n-space>
-        </n-card>
+          <div class="divider"></div>
+        </div>
+        <n-space vertical class="content-container">
+          <div v-if="filteredRepos.length > 0" class="repo-grid">
+            <n-card v-for="repo in filteredRepos" :key="repo.id" class="repo-card">
+              <template #header>
+                <div class="repo-header">
+                  <h3 class="repo-title">{{ repo.name }}</h3>
+                  <div class="tag-select-container">
+                    <n-select v-model:value="repoTags[repo.id]" multiple filterable size="small" placeholder="添加标签" :options="tagOptions" @update:value="(value) => handleRepoTagChange(repo.id, value)" />
+                  </div>
+                </div>
+              </template>
+              <n-space vertical>
+                <a :href="repo.html_url" target="_blank" class="repo-link">{{ repo.full_name }}</a>
+                <p class="repo-description">{{ repo.description }}</p>
+                <n-space>
+                  <n-tag v-if="repo.language">{{ repo.language }}</n-tag>
+                  <n-tag>
+                    <template #icon>
+                      <n-icon color="#e7bd46"><star-filled /></n-icon>
+                    </template>
+                    {{ repo.stargazers_count }}
+                  </n-tag>
+                </n-space>
+                <n-space wrap>
+                  <n-tag :type="tag.split('::')[1]" v-for="tag in repoTags[repo.id]" :key="tag" closable @close="removeRepoTag(repo.id, tag)">
+                    {{ tag.split('::')[0] }}
+                  </n-tag>
+                </n-space>
+              </n-space>
+            </n-card>
+          </div>
+          <div v-else class="empty-state">
+            <n-icon size="48" :component="InboxOutlined" />
+          </div>
+        </n-space>
       </div>
-    </n-space>
-    
-    <!-- 新增：版权页脚 -->
-    <footer class="copyright-footer">
-      <n-text depth="3">© {{ currentYear }} Color Stars</n-text>
-    </footer>
+      
+      <!-- 版权页脚 -->
+      <footer class="copyright-footer">
+        <n-text depth="3">© {{ currentYear }} GitHub Star Manager. 保留所有权利。</n-text>
+      </footer>
+    </div>
   </div>
 
-  <!-- 新增：标签创建模态框 -->
+  <!-- 标签创建模态框 -->
   <n-modal v-model:show="showModal" preset="card" title="创建新标签" style="width: 90%; max-width: 400px;">
     <n-space vertical>
       <n-input v-model:value="newTagName" placeholder="输入新标签名称" />
@@ -86,7 +93,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { NInput, NButton, NCard, NSpace, NTag, NIcon, NSelect, NModal, NText, useLoadingBar, useMessage } from 'naive-ui';
-import { StarFilled } from '@vicons/antd';
+import { StarFilled, InboxOutlined } from '@vicons/antd';
 import githubService, { perPage } from '../services/githubService';
 
 const username = ref('');
@@ -216,7 +223,7 @@ const removeRepoTag = (repoId, tagToRemove) => {
   localStorage.setItem(`repo-tags-${repoId}`, JSON.stringify(repoTags.value[repoId]));
 };
 
-// 新增：监听 tagOptions 的变化
+// 监听 tagOptions 的变化
 watch(tagOptions, () => {
   saveTags();
 }, { deep: true });
@@ -242,15 +249,33 @@ const createNewTag = () => {
   }
 };
 
-// 新增：计算当前年份
+// 计算当前年份
 const currentYear = computed(() => new Date().getFullYear());
 </script>
   
 <style scoped>
-.starred-repos-container {
+.page-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
+  width: 100%;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+.starred-repos-container {
+  flex: 1;
 }
 
 .header-container {
@@ -263,7 +288,6 @@ const currentYear = computed(() => new Date().getFullYear());
 
 .header-space {
   margin-bottom: 20px;
-  padding: 0 24px;
 }
 
 .avatar-container, .tag-input-container {
@@ -294,7 +318,7 @@ const currentYear = computed(() => new Date().getFullYear());
 .divider {
   height: 1px;
   background-color: #e0e0e0;
-  margin: 0 24px 20px;
+  margin-bottom: 20px;
 }
 
 .content-container {
@@ -305,7 +329,6 @@ const currentYear = computed(() => new Date().getFullYear());
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
-  padding: 0 24px;
 }
 
 .repo-card {
@@ -420,6 +443,10 @@ const currentYear = computed(() => new Date().getFullYear());
   .repo-card:active .tag-select-container {
     opacity: 1;
   }
+
+  .content-wrapper {
+    padding: 0 16px;
+  }
 }
 
 /* 添加以下样式来美化颜色球 */
@@ -439,11 +466,32 @@ const currentYear = computed(() => new Date().getFullYear());
   box-shadow: 0 0 0 2px var(--n-color);
 }
 
-/* 新增：版权页脚样式 */
+/* 版权页脚样式 */
 .copyright-footer {
   text-align: center;
   padding: 20px 0;
   margin-top: 40px;
   border-top: 1px solid #e0e0e0;
+  background-color: #fff;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  text-align: center;
+}
+
+.empty-state .n-icon {
+  margin-bottom: 16px;
+  color: #909399;
+}
+
+.empty-state p {
+  margin-bottom: 16px;
+  font-size: 16px;
+  color: #606266;
 }
 </style>
