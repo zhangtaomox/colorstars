@@ -1,27 +1,27 @@
 <template>
   <div class="page-container">
     <div class="content-wrapper">
+      <div class="header-container">
+        <n-space justify="space-between" class="header-space">
+          <div class="avatar-container">
+            <img :src="avatarUrl" alt="GitHub Avatar" class="avatar" @click="showUsernameInput = true" v-if="!showUsernameInput" />
+            <n-input v-else round placeholder="输入GitHub用户名" v-model:value="username" @keydown.enter="fetchAllStarredRepos" @blur="hideUsernameInput" />
+          </div>
+          <div class="tag-input-container">
+            <n-select
+              v-model:value="selectedTags"
+              multiple
+              filterable
+              placeholder="选择标签进行筛选"
+              :options="tagOptions"
+              @update:value="handleTagChange"
+            />
+            <n-button @click="showModal = true">+</n-button>
+          </div>
+        </n-space>
+        <div class="divider"></div>
+      </div>
       <div class="starred-repos-container">
-        <div class="header-container">
-          <n-space justify="space-between" class="header-space">
-            <div class="avatar-container">
-              <img :src="avatarUrl" alt="GitHub Avatar" class="avatar" @click="showUsernameInput = true" v-if="!showUsernameInput" />
-              <n-input v-else round placeholder="输入GitHub用户名" v-model:value="username" @keydown.enter="fetchAllStarredRepos" @blur="hideUsernameInput" />
-            </div>
-            <div class="tag-input-container">
-              <n-select
-                v-model:value="selectedTags"
-                multiple
-                filterable
-                placeholder="选择标签进行筛选"
-                :options="tagOptions"
-                @update:value="handleTagChange"
-              />
-              <n-button @click="showModal = true">+</n-button>
-            </div>
-          </n-space>
-          <div class="divider"></div>
-        </div>
         <n-space vertical class="content-container">
           <div v-if="filteredRepos.length > 0" class="repo-grid">
             <n-card v-for="repo in filteredRepos" :key="repo.id" class="repo-card">
@@ -61,7 +61,10 @@
       
       <!-- 版权页脚 -->
       <footer class="copyright-footer">
-        <n-text depth="3">© {{ currentYear }} GitHub Star Manager. 保留所有权利。</n-text>
+        <n-text depth="3">© {{ currentYear }} </n-text>
+        <p>
+        <n-text depth="3">Make Things Happen</n-text>
+        </p>
       </footer>
     </div>
   </div>
@@ -259,7 +262,6 @@ const currentYear = computed(() => new Date().getFullYear());
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
-  overflow-x: hidden;
 }
 
 .content-wrapper {
@@ -274,16 +276,13 @@ const currentYear = computed(() => new Date().getFullYear());
   box-sizing: border-box;
 }
 
-.starred-repos-container {
-  flex: 1;
-}
-
 .header-container {
   position: sticky;
   top: 0;
   background-color: #fff;
   z-index: 100;
-  padding-top: 20px;
+  padding: 20px 0;
+  margin-bottom: 20px;
 }
 
 .header-space {
@@ -318,7 +317,10 @@ const currentYear = computed(() => new Date().getFullYear());
 .divider {
   height: 1px;
   background-color: #e0e0e0;
-  margin-bottom: 20px;
+}
+
+.starred-repos-container {
+  flex: 1;
 }
 
 .content-container {
